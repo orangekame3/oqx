@@ -18,7 +18,7 @@ is compatible with the Python SDK `quri-parts-oqtopus`.
 ## Install
 
 ```sh
-go install ./cmd/oqx
+go install .
 ```
 
 After releases are published:

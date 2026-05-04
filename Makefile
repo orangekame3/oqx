@@ -1,7 +1,7 @@
 .PHONY: build test lint fmt vet clean ci fmt-check
 
 build:
-	go build -o oqx ./cmd/oqx
+	go build -o oqx .
 
 test:
 	go test -race ./...
