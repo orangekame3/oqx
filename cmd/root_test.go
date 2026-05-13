@@ -257,6 +257,33 @@ func TestJobsSubmitSampling(t *testing.T) {
 	}
 }
 
+func TestExamplesSubmitJobUsesRunnableBellProgram(t *testing.T) {
+	out, _, err := executeForTest("--output", "json", "examples", "submit-job", "--device", "qulacs", "--shots", "123")
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	for _, want := range []string{`include \"stdgates.inc\"`, `cx q[0], q[1]`, `"shots":123`} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("output missing %q: %s", want, out)
+		}
+	}
+	if strings.Contains(out, "cnot") {
+		t.Fatalf("output still uses cnot: %s", out)
+	}
+}
+
+func TestJobsSubmitSamplingHelpIncludesBellGuidance(t *testing.T) {
+	out, _, err := executeForTest("jobs", "submit-sampling", "--help")
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	for _, want := range []string{`include "stdgates.inc"`, `cx q[0], q[1]`, `--program bell.qasm`} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("help missing %q: %s", want, out)
+		}
+	}
+}
+
 func TestContextCommand(t *testing.T) {
 	out, _, err := executeForTest("--output", "json", "context")
 	if err != nil {
