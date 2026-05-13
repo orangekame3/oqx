@@ -3,7 +3,6 @@ package cmd
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 )
@@ -26,7 +25,7 @@ func TestConfigStore(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := info.Mode().Perm(); runtime.GOOS != "windows" && got != 0o600 {
+	if got := info.Mode().Perm(); supportsPOSIXPerms() && got != 0o600 {
 		t.Fatalf("mode = %o, want 600", got)
 	}
 
@@ -69,15 +68,14 @@ func TestAuthStatusDoesNotPrintToken(t *testing.T) {
 }
 
 func TestLoadOqtopusConfig(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("USERPROFILE", home)
+	path := filepath.Join(t.TempDir(), ".oqtopus")
+	t.Setenv(envOqtopusConfigPath, path)
 	data := `[default]
 url=https://api.example.test
 api_token=secret
 proxy=http://proxy.example.test
 `
-	if err := os.WriteFile(filepath.Join(home, ".oqtopus"), []byte(data), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -88,4 +86,19 @@ proxy=http://proxy.example.test
 	if cfg.BaseURL != "https://api.example.test" || cfg.APIToken != "secret" || cfg.Proxy != "http://proxy.example.test" {
 		t.Fatalf("config = %#v", cfg)
 	}
+}
+
+func supportsPOSIXPerms() bool {
+	path := filepath.Join(os.TempDir(), "oqx-perm-check")
+	if err := os.WriteFile(path, []byte("x"), 0o600); err != nil {
+		return false
+	}
+	defer func() {
+		_ = os.Remove(path)
+	}()
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return info.Mode().Perm() == 0o600
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const bellProgram = `OPENQASM 3; qubit[2] q; bit[2] c; h q[0]; cnot q[0], q[1]; c = measure q;`
+const bellProgram = `OPENQASM 3; include "stdgates.inc"; qubit[2] q; bit[2] c; h q[0]; cx q[0], q[1]; c = measure q;`
 
 var exampleDevice string
 var exampleShots int
@@ -19,6 +19,11 @@ var examplesCmd = &cobra.Command{
 var examplesSubmitJobCmd = &cobra.Command{
 	Use:   "submit-job",
 	Short: "Print a jobs submit request body",
+	Example: `  oqx examples submit-job --device qulacs --shots 1000 > job.json
+  oqx --output json jobs submit --file job.json
+
+  # The generated Bell program is:
+  # OPENQASM 3; include "stdgates.inc"; qubit[2] q; bit[2] c; h q[0]; cx q[0], q[1]; c = measure q;`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		body, err := samplingJobBody(exampleDevice, bellProgram, "Bell State Sampling", "Bell State Sampling Example", exampleShots)
 		if err != nil {

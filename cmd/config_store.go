@@ -11,6 +11,7 @@ import (
 )
 
 const configDirName = "oqx"
+const envOqtopusConfigPath = "OQTOPUS_CONFIG_PATH"
 
 type fileConfig struct {
 	BaseURL  string `json:"base_url,omitempty"`
@@ -81,6 +82,9 @@ func loadOqtopusConfig() (fileConfig, error) {
 }
 
 func oqtopusConfigPath() (string, error) {
+	if path := os.Getenv(envOqtopusConfigPath); path != "" {
+		return path, nil
+	}
 	path := os.ExpandEnv("~/.oqtopus")
 	if strings.HasPrefix(path, "~/") {
 		home, err := os.UserHomeDir()
@@ -124,7 +128,13 @@ func saveConfig(cfg fileConfig) (string, error) {
 		return "", err
 	}
 	data = append(data, '\n')
-	return path, os.WriteFile(path, data, 0o600)
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		return "", err
+	}
+	if err := os.Chmod(path, 0o600); err != nil {
+		return "", err
+	}
+	return path, nil
 }
 
 func removeConfig() (string, error) {

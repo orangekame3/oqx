@@ -73,6 +73,15 @@ var jobsSubmitCmd = &cobra.Command{
 var jobsSubmitSamplingCmd = &cobra.Command{
 	Use:   "submit-sampling --device DEVICE_ID --program PROGRAM.qasm",
 	Short: "Submit a sampling job from an OPENQASM 3 program",
+	Example: `  cat > bell.qasm <<'EOF'
+  OPENQASM 3; include "stdgates.inc"; qubit[2] q; bit[2] c; h q[0]; cx q[0], q[1]; c = measure q;
+  EOF
+
+  oqx --output json jobs submit-sampling \
+    --device qulacs \
+    --program bell.qasm \
+    --shots 1000 \
+    --name "Bell sampling"`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		program, err := os.ReadFile(submitSamplingProgram)
 		if err != nil {
